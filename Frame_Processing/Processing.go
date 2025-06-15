@@ -4,71 +4,102 @@ import (
 	"image"
 	"image/color"
 	"image/draw"
-	"image/jpeg"
+	"image/png"
 	"io"
 	"log"
 	"os"
 
+	"github.com/KononK/resize"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
 
-const ASCII = "`^\\\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$"
+const ASCII = ".:-=+*#%@"
+const newWidth = 300
+const charWidth = 8
+const charHeight = 12
 
-func LoadImage() *os.File {
+func ImageResizeAndLoad() (image.Image, error) {
 
-	Image, err := os.Open("test.jpg")
-
+	File, err := os.Open("test.png")
 	if err != nil {
 
-		log.Println("Error Occured while Opening the image: ", err)
+		return nil, err
+	}
+	defer File.Close()
 
+	img, err := png.Decode(File)
+	if err != nil {
+
+		return nil, err
 	}
 
-	return Image
+	bounds := img.Bounds()
+
+	originalHeight := bounds.Dy()
+	originalWidth := bounds.Dx()
+
+	character_Pixel_Aspect_Ratio := float64(charWidth) / float64(charHeight)
+
+	newHeight := uint((float64(originalHeight) / float64(originalWidth)) * float64(newWidth) * character_Pixel_Aspect_Ratio)
+	if newHeight == 0 && originalHeight > 0 {
+
+		newHeight = 1
+	}
+
+	resizedImage := resize.Resize(newWidth, newHeight, img, resize.Lanczos3)
+	out,err := os.Create("resized.png")
+	if err != nil {
+
+		log.Println("ERROR OCCURED WHILE CREATING THE FILE: ",err)
+		return nil,err
+	}
+	defer out.Close()
+
+	err = png.Encode(out,resizedImage)
+	if err != nil {
+
+		log.Println("ERROR OCCURED WHILE ENCODING THE IMAGE: ",err)
+		return nil,err
+	}
+
+	return resizedImage, nil
 
 }
 
-func GetBrightnessMatrix(Image *os.File) [][]uint8 {
+func ProcessImageForAscii(img image.Image) ([][]uint8, [][]color.RGBA) {
 
-	imageInfo, err := jpeg.Decode(Image)
-
-	if err != nil {
-
-		log.Println("Couldn't get Image info: ", err)
-
-	}
-
-	bounds := imageInfo.Bounds()
-
-	Pixels := make([][]uint8, 0)
+	bounds := img.Bounds()
 	Width := bounds.Dx()
 	Height := bounds.Dy()
 
+	Pixels := make([][]uint8, Height)
+	rgbaValues := make([][]color.RGBA, Height)
+
 	for y := 0; y < Height; y++ {
 
-		row := make([]uint8, 0)
+		row := make([]uint8, Width)
+		rgbaRow := make([]color.RGBA, Width)
 		for x := 0; x < Width; x++ {
 
-			r, g, b, _ := imageInfo.At(x, y).RGBA()
+			r, g, b, _ := img.At(x, y).RGBA()
 
 			r8 := uint8(r >> 8)
 			g8 := uint8(g >> 8)
 			b8 := uint8(b >> 8)
 
+			rgbaRow[x] = color.RGBA{R: r8, G: g8, B: b8, A: 255}
 			Brightness := uint8(0.2126*float64(r8) + 0.7152*float64(g8) + 0.0722*float64(b8))
-			row = append(row, Brightness)
+			row[x] = Brightness
 
 		}
+		rgbaValues[y] = rgbaRow
+		Pixels[y] = row
 
-		if len(row) > 0 {
-
-			Pixels = append(Pixels, row)
-		}
 	}
 
-	return Pixels
+	return Pixels, rgbaValues
 }
 
 func BrightnessToASCII(brightnessValue uint8) byte {
@@ -82,7 +113,7 @@ func BrightnessToASCII(brightnessValue uint8) byte {
 	return asciiValue
 }
 
-func GrayScaleToAscii(Pixels [][]uint8) *image.RGBA {
+func GrayScaleToAscii(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA, error) {
 
 	asciiMatrix := make([][]byte, len(Pixels))
 
@@ -103,6 +134,7 @@ func GrayScaleToAscii(Pixels [][]uint8) *image.RGBA {
 	if err != nil {
 
 		log.Println("ERROR OCCURED WHILE OPENING FILE: ", err)
+		return nil, err
 	}
 	fontBytes, err := io.ReadAll(fontFile)
 	if err != nil {
@@ -115,25 +147,23 @@ func GrayScaleToAscii(Pixels [][]uint8) *image.RGBA {
 	if err != nil {
 
 		log.Println("ERROR OCCURED WHILE PARSING FONT: ", err)
+		return nil, err
 	}
 
 	SourceCode, _ := opentype.NewFace(ttfFont, &opentype.FaceOptions{
 
-		Size:    12.0,
-		DPI:     72.0,
-		Hinting: font.HintingFull,
+		Size:    16.0,
+		DPI:     150.0,
+		Hinting: font.HintingNone,
 	})
 
-	charWidth := 8
-	charHeight := 12
-
-	Img := image.NewRGBA(image.Rect(0, 0, len(Pixels)*charHeight, len(Pixels[0])*charWidth))
+	Img := image.NewRGBA(image.Rect(0, 0, len(Pixels[0])*charWidth, len(Pixels)*charHeight))
 	draw.Draw(Img, Img.Bounds(), &image.Uniform{color.White}, image.Point{}, draw.Src)
 
 	Drawer := &font.Drawer{
 
 		Dst:  Img,
-		Src:  image.NewUniform(color.Black),
+		Src:  nil,
 		Face: SourceCode,
 	}
 
@@ -141,42 +171,36 @@ func GrayScaleToAscii(Pixels [][]uint8) *image.RGBA {
 
 		for x, ch := range row {
 
+			Drawer.Src = image.NewUniform(rgbaValues[y][x])
+
 			Drawer.Dot = fixed.P(x*charWidth, (y+1)*charHeight)
 			Drawer.DrawString(string(ch))
+		
 		}
 	}
 
-	return Img
+	return Img, nil
 }
 
-func SaveImage(Img *image.RGBA) {
+func SaveImage(Img *image.RGBA) error {
 
-	newImage, err := os.Create("output.jpg")
+	newImage, err := os.Create("output.png")
 
 	if err != nil {
 
 		log.Println("Couldnt create File the following error occured: ", err)
+		return err
 	}
+	defer newImage.Close()
 
-	err = jpeg.Encode(newImage, Img, nil)
+	err = png.Encode(newImage, Img)
 
 	if err != nil {
 
 		log.Println("Couldnt convert to grayScale: ", err)
+		return err
 	}
+
+	return nil
+
 }
-
-// func main() {
-
-// 	Image := loadImage()
-
-// 	if Image != nil {
-
-// 		defer Image.Close()
-// 	}
-
-// 	Pixels := getBrightnessMatrix(Image)
-// 	asciiImage := grayScaleToAscii(Pixels)
-// 	saveImage(asciiImage)
-
-// }
