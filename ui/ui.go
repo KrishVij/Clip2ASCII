@@ -1,10 +1,9 @@
 package main
 
 import (
-	
 	"image/color"
 	"math"
-	
+
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
@@ -16,7 +15,6 @@ import (
 )
 
 type Game struct {
-
 	ui *ebitenui.UI
 }
 
@@ -24,14 +22,20 @@ func NewGame() *Game {
 
 	button1 := widget.NewButton(
 
-		widget.ButtonOpts.TextLabel("ToASCII"),
-		widget.ButtonOpts.TextFace(text.NewGoXFace(inconsolata.Bold8x16)),
-		widget.ButtonOpts.TextColor(&widget.ButtonTextColor{
+		widget.ButtonOpts.Text("ToASCII", text.NewGoXFace(inconsolata.Bold8x16), &widget.ButtonTextColor{
 
-			Idle: colornames.White,
-			Hover: colornames.Azure,
-			Pressed: colornames.Olive ,
+			Idle:    colornames.White,
+			Hover:   colornames.Azure,
+			Pressed: colornames.Olive,
 		}),
+
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Top:    10,
+			Left:   10,
+			Right:  10,
+			Bottom: 10,
+		}),
+
 		widget.ButtonOpts.TextPosition(
 
 			widget.TextPositionCenter,
@@ -39,31 +43,36 @@ func NewGame() *Game {
 		),
 		widget.ButtonOpts.Image(&widget.ButtonImage{
 
-			Idle:  DefaultPill(colornames.Darkslategray),
-			Hover: DefaultPill(Mix(colornames.Darkslategray, colornames.Mediumseagreen, 0.4)),
+			Idle:    DefaultPill(colornames.Darkslategray),
+			Hover:   DefaultPill(Mix(colornames.Darkslategray, colornames.Mediumseagreen, 0.4)),
 			Pressed: PressedPill(Mix(colornames.Darkslategray, colornames.Black, 0.4)),
 		}),
 		widget.ButtonOpts.WidgetOpts(
 
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 
-				VerticalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionStart,
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			}),
 		),
-	
-    )
+	)
 
 	button2 := widget.NewButton(
 
-		widget.ButtonOpts.TextLabel("From AScii"),
-		widget.ButtonOpts.TextFace(text.NewGoXFace(inconsolata.Bold8x16)),
-		widget.ButtonOpts.TextColor(&widget.ButtonTextColor{
+		widget.ButtonOpts.Text("ToASCII", text.NewGoXFace(inconsolata.Bold8x16), &widget.ButtonTextColor{
 
-			Idle: colornames.White,
-			Hover: colornames.Azure,
-			Pressed: colornames.Olive ,
+			Idle:    colornames.White,
+			Hover:   colornames.Azure,
+			Pressed: colornames.Olive,
 		}),
+		
+		widget.ButtonOpts.TextPadding(widget.Insets{
+			Top:    10,
+			Left:   10,
+			Right:  10,
+			Bottom: 10,
+		}),
+
 		widget.ButtonOpts.TextPosition(
 
 			widget.TextPositionCenter,
@@ -71,22 +80,20 @@ func NewGame() *Game {
 		),
 		widget.ButtonOpts.Image(&widget.ButtonImage{
 
-			Idle:  DefaultPill(colornames.Darkslategray),
-			Hover: DefaultPill(Mix(colornames.Darkslategray, colornames.Mediumseagreen, 0.4)),
+			Idle:    DefaultPill(colornames.Darkslategray),
+			Hover:   DefaultPill(Mix(colornames.Darkslategray, colornames.Mediumseagreen, 0.4)),
 			Pressed: PressedPill(Mix(colornames.Darkslategray, colornames.Black, 0.4)),
 		}),
 		widget.ButtonOpts.WidgetOpts(
 
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 
-				VerticalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
 			}),
 		),
-	
-
 	)
-	
+
 	root := widget.NewContainer(
 
 		widget.ContainerOpts.BackgroundImage(
@@ -95,7 +102,7 @@ func NewGame() *Game {
 		widget.ContainerOpts.Layout(widget.NewAnchorLayout()),
 	)
 
-	root.AddChild(button1) 
+	root.AddChild(button1)
 	root.AddChild(button2)
 
 	return &Game{
@@ -121,7 +128,7 @@ func (g *Game) Layout(w, h int) (int, int) {
 }
 
 func DefaultPill(base color.Color) *image.NineSlice {
-	
+
 	img := ebiten.NewImage(64, 64)
 	img.Fill(base)
 	return image.NewNineSliceBorder(img, 16)
@@ -129,9 +136,9 @@ func DefaultPill(base color.Color) *image.NineSlice {
 }
 
 func PressedPill(base color.Color) *image.NineSlice {
-	
+
 	img := ebiten.NewImage(64, 64)
-	img.Fill(Mix(base, colornames.Black, 0.2)) 
+	img.Fill(Mix(base, colornames.Black, 0.2))
 	return image.NewNineSliceBorder(img, 16)
 
 }
@@ -172,7 +179,7 @@ func RoundedRectPath(x, y, w, h, tl, tr, br, bl float32) *vector.Path {
 
 func main() {
 
-	ebiten.SetWindowSize(800,600)
+	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	if err := ebiten.RunGame(NewGame()); err != nil {
