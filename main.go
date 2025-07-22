@@ -8,15 +8,15 @@ import (
 
 func main() {
 
-	Image, err := Frame_Processing.ImageResizeAndLoad()
+	Image, err := Frame_Processing.LoadAndResizeImage()
 
 	if err != nil {
 
 		log.Fatalf("ERROR OCCURED WHILE LOADING IMAGE: %v", err)
 	}
 
-	Pixels,rgbaValues := Frame_Processing.ProcessImageForAscii(Image)
-	asciiImage,err := Frame_Processing.GrayScaleToAscii(Pixels,rgbaValues)
+	Pixels,rgbaValues := Frame_Processing.ExtractPixelData(Image)
+	asciiImage,err := Frame_Processing.RenderAsciiImage(Pixels,rgbaValues)
 	if err != nil {
 
 		log.Fatalf("ERROR OCCURED WHILE CONVERTING TO ASCII: %v",err)
