@@ -1,7 +1,7 @@
 package Frame_Processing
 
 import (
-	// "fmt"
+
 	"image"
 	"image/color"
 	"image/draw"
@@ -27,10 +27,9 @@ const newWidth = 300
 const charWidth = 8
 const charHeight = 12
 
-func ExtarctFramesFromVideo(videoPath string) (tempDir string) {}
 // This function loads a PNG image and resizes it to prepare for ASCII conversion,
 // The resize calculation is crucial because it prevents distorted ASCII art.
-func LoadAndResizeImage() (image.Image, error) {
+func LoadAndResizeImage(framePath string) (image.Image, error) {
 
 	File, err := os.Open("test.png")
 	if err != nil {
@@ -277,16 +276,23 @@ func RenderAsciiImage(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA,
 	return Img, nil
 }
 
-func SaveImage(Img *image.RGBA) error {
+func SaveImage(Img *image.RGBA) (error error) {
 
-	newImage, err := os.Create("output.png")
+	err := os.Mkdir("C:/Users/Krish Vij/ASCII_Frames", 0750) 
+	if err != nil {
+
+		log.Println("Error Occured while Creating The Directoy: ",err)
+	}
+
+	newImage,err := os.Open("Ascii_Frame.png")
+	ascciiImagePath := filepath.Join("C:/Users/Krish Vij/ASCII_Frames",newImage)
 
 	if err != nil {
 
 		log.Println("Couldnt create File the following error occured: ", err)
 		return err
+		
 	}
-	defer newImage.Close()
 
 	err = png.Encode(newImage, Img)
 
