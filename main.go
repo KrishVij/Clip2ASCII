@@ -1,6 +1,8 @@
 package main
 
 import (
+
+	"fmt"
 	"log"
 	"os"
 
@@ -13,6 +15,15 @@ import (
 func main() {
 
 	const videoPath = "C:/Users/Krish Vij/Downloads/vecteezy_visiting-a-destination-city-on-holiday_34634255.mov"
+	const outputPATH = "C:/Users/Krish Vij/output.mp4"
+
+	err := os.MkdirAll("C:/Users/Krish Vij/ASCII_Frames", 0750)
+	if err != nil {
+
+		log.Fatalf("Error creating ASCII_Frames directory: %v", err)
+	}
+	
+	Count := 1
 
 	result := FFmpegutils.ExtarctFramesFromVideo(videoPath)
 
@@ -40,39 +51,22 @@ func main() {
 			log.Fatalf("ERROR OCCURED WHILE CONVERTING TO ASCII: %v", err)
 
 		}
-		Frame_Processing.SaveImage(asciiImage)
+		Frame_Processing.SaveImage(asciiImage, Count)
 		if err != nil {
 
 			log.Fatalf("Error occured while saving the image: %v", err)
 		}
 
-		log.Println("ASCII image generated successfully!")
+		Count++
+
+		fmt.Printf("Frame: %d processed successfully\n",Count - 1)
 
 	}
 
-	/*
-	
-	Image, err := Frame_Processing.LoadAndResizeImage()
+	log.Println("ASCII frames folder generated successfully!")
 
-	if err != nil {
+	FFmpegutils.StitchFramesToVideo(outputPATH)
 
-		log.Fatalf("ERROR OCCURED WHILE LOADING IMAGE: %v", err)
-	}
-
-	Pixels, rgbaValues := Frame_Processing.ExtractPixelData(Image)
-	asciiImage, err := Frame_Processing.RenderAsciiImage(Pixels, rgbaValues)
-	if err != nil {
-
-		log.Fatalf("ERROR OCCURED WHILE CONVERTING TO ASCII: %v", err)
-
-	}
-	Frame_Processing.SaveImage(asciiImage)
-	if err != nil {
-
-		log.Fatalf("Error occured while saving the image: %v", err)
-	}
-
-	log.Println("ASCII image generated successfully!")
-	*/
+	fmt.Println("ASCII image Generated successfully")
 
 }
