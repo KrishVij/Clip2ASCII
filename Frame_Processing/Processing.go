@@ -1,11 +1,13 @@
 package Frame_Processing
 
 import (
-
+	
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/png"
+	// "path/filepath"
 	"io"
 	"log"
 	"os"
@@ -31,7 +33,7 @@ const charHeight = 12
 // The resize calculation is crucial because it prevents distorted ASCII art.
 func LoadAndResizeImage(framePath string) (image.Image, error) {
 
-	File, err := os.Open("test.png")
+	File, err := os.Open(framePath)
 	if err != nil {
 
 		return nil, err
@@ -276,16 +278,17 @@ func RenderAsciiImage(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA,
 	return Img, nil
 }
 
-func SaveImage(Img *image.RGBA) (error error) {
+func SaveImage(Img *image.RGBA,Count int) (error error) {
 
-	err := os.Mkdir("C:/Users/Krish Vij/ASCII_Frames", 0750) 
-	if err != nil {
+	// err := os.Mkdir("C:/Users/Krish Vij/ASCII_Frames", 0750) 
+	// if err != nil {
 
-		log.Println("Error Occured while Creating The Directoy: ",err)
-	}
+	// 	log.Println("Error Occured while Creating The Directoy: ",err)
+	// }
 
-	newImage,err := os.Open("Ascii_Frame.png")
-	ascciiImagePath := filepath.Join("C:/Users/Krish Vij/ASCII_Frames",newImage)
+	s := fmt.Sprintf("C:/Users/Krish Vij/ASCII_Frames/ASCII_Frames%03d.png",Count)
+	newImage,err := os.Create(s)
+	// ascciiImagePath := filepath.Join("C:/Users/Krish Vij/ASCII_Frames",newImage)
 
 	if err != nil {
 
