@@ -14,7 +14,7 @@ import (
 
 func main() {
 
-	const videoPath = "C:/Users/Krish Vij/Downloads/vecteezy_visiting-a-destination-city-on-holiday_34634255.mov"
+	const videoPath = "C:/Users/Krish Vij/Downloads/testvid.mp4"
 	const outputPATH = "C:/Users/Krish Vij/output.mp4"
 
 	err := os.MkdirAll("C:/Users/Krish Vij/ASCII_Frames", 0750)

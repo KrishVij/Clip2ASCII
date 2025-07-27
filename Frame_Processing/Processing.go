@@ -24,7 +24,7 @@ Index 8: @ (brightest)
 so the characterset is from darkest to brightest
 */
 
-const ASCII = ".:-=+*#%@"
+const ASCII =  ".:-=+*#%@"
 const newWidth = 300
 const charWidth = 8
 const charHeight = 12
