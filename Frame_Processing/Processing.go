@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"math"
 
 	"github.com/KononK/resize"
 	"golang.org/x/image/font"
@@ -24,7 +25,7 @@ Index 8: @ (brightest)
 so the characterset is from darkest to brightest
 */
 
-const ASCII =  ".:-=+*#%@"
+const ASCII = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\\\"^`'. "
 const newWidth = 300
 const charWidth = 8
 const charHeight = 12
@@ -99,6 +100,13 @@ func ExtractPixelData(img image.Image) ([][]uint8, [][]color.RGBA) {
 
 			r, g, b, _ := img.At(x, y).RGBA()
 
+			gammaCorrectionPixelByPixel := func(color_value uint8) float64{
+
+				new_color_value := math.Pow((float64)(color_value)/ 255.0, 2.2)
+
+				return new_color_value
+			}
+
 			/*
 				Go's RGBA() returns 16-bit values (0-65535)
 				But we need 8-bit values (0-255) for standard RGB
@@ -116,7 +124,7 @@ func ExtractPixelData(img image.Image) ([][]uint8, [][]color.RGBA) {
 				Blue appears dimmest (0.0722 = 7.22%)
 			*/
 			rgbaRow[x] = color.RGBA{R: r8, G: g8, B: b8, A: 255}
-			Brightness := uint8(0.2126*float64(r8) + 0.7152*float64(g8) + 0.0722*float64(b8))
+			Brightness := uint8(255 * (0.2126*float64(gammaCorrectionPixelByPixel(r8)) + 0.7152*float64(gammaCorrectionPixelByPixel(g8)) + 0.0722*float64(gammaCorrectionPixelByPixel(b8))))
 			row[x] = Brightness
 
 		}
@@ -128,7 +136,7 @@ func ExtractPixelData(img image.Image) ([][]uint8, [][]color.RGBA) {
 	return Pixels, rgbaValues
 }
 
-func MapBrightnessToChar(brightnessValue uint8) byte {
+func Map_Brightness_To_Char(brightnessValue uint8) byte {
 
 	var asciiValue byte
 	//float64(brightnessValue) / 255.0,
@@ -142,6 +150,17 @@ func MapBrightnessToChar(brightnessValue uint8) byte {
 	return asciiValue
 }
 
+
+// func Map_Brightness_To_Char_Using_Lookup_Table(brightness_value uint8, lookup_table [256]string) string {
+
+// 	ascii_index := int(float64((len(lookup_table) - 1)) * float64(brightness_value) / 255.0)
+
+// 	ascii_value := lookup_table[ascii_index]
+
+// 	return ascii_value
+
+// }
+
 func RenderAsciiImage(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA, error) {
 
 	asciiMatrix := make([][]byte, len(Pixels))
@@ -153,7 +172,7 @@ func RenderAsciiImage(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA,
 
 		for _, cell := range row {
 
-			asciiRow[cellNumber] = MapBrightnessToChar(cell)
+			asciiRow[cellNumber] = Map_Brightness_To_Char(cell)
 			cellNumber++
 		}
 		asciiMatrix[rowNum] = asciiRow
