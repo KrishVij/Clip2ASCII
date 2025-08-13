@@ -54,3 +54,10 @@ func StitchFramesToVideo(outputPATH string) {
 	}
 
 }
+
+func Extract_Thumbnail_And_Transform_To_Ebiten_Image(videoPath string) {
+
+	cmd  := exec.Command("ffmpeg","-i",videoPath,"-ss","0", "-vframes", "1","thumbnail.png")
+
+	cmd.Run()
+}
