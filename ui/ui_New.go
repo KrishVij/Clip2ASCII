@@ -3,24 +3,31 @@ package main
 import (
 	"bytes"
 	"fmt"
+
+	// "os/exec"
 	"time"
-	"os/exec"
 
 	// stdImage "image"
 	"image/color"
 	"log"
+
 	"github.com/hajimehoshi/ebiten/v2"
+
 	// "github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
+	FFmpegutils "github.com/KrishVij/clip2ASCII/FFmpeg_Utils"
 	// "github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+	"github.com/ncruces/zenity"
 	"golang.org/x/image/font/gofont/goregular"
 )
 
 var my_color = color.NRGBA{R: 25, G: 23, B: 36, A: 255}
 var rosePinePine color.Color = my_color
+
+const defaultPath = "C:/Users/Krish Vij/Downloads"
 
 // var newPage = image.NewImageColor(rosePinePurple)
 
@@ -177,42 +184,56 @@ func main() {
 
 		widget.ButtonOpts.ClickedHandler(func(args *widget.ButtonClickedEventArgs) {
 
-			cmd := exec.Command("explorer",".mp4")
-			output, _ := cmd.Output()
-			fmt.Println(string(output))
+			filepath, err := zenity.SelectFile(
+
+				zenity.Filename(defaultPath),
+				zenity.FileFilters{{   
+						
+					    Name: "Video files",
+						Patterns: []string{"*.mp4"},
+						CaseFold: true,
+				}},
+			)
+
+			if err != nil {
+
+				log.Fatalf("Error Ocuured while Opening file dialogs : %v",err)
+			}
+
+			FFmpegutils.Extract_Thumbnail_And_Transform_To_Ebiten_Image(filepath)
 
 		},
 	))
 
 	/*
-	btn_Invisible := widget.NewButton(
+		btn_Invisible := widget.NewButton(
 
-		widget.ButtonOpts.Image(ButtonImageInvisible),
+			widget.ButtonOpts.Image(ButtonImageInvisible),
 
-		widget.ButtonOpts.Text("ToASCII", Face, &widget.ButtonTextColor{
+			widget.ButtonOpts.Text("ToASCII", Face, &widget.ButtonTextColor{
 
-			Idle: color.NRGBA{144, 122, 169, 255},
-		}),
-
-		widget.ButtonOpts.TextProcessBBCode(false),
-
-		widget.ButtonOpts.TextPadding(widget.Insets{
-
-			Left:   30,
-			Right:  30,
-			Top:    5,
-			Bottom: 5,
-		}),
-
-		widget.ButtonOpts.WidgetOpts(
-
-			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-
-				HorizontalPosition: widget.AnchorLayoutPositionCenter,
-				VerticalPosition:   widget.AnchorLayoutPositionStart,
+				Idle: color.NRGBA{144, 122, 169, 255},
 			}),
-		),
-	)
+
+			widget.ButtonOpts.TextProcessBBCode(false),
+
+			widget.ButtonOpts.TextPadding(widget.Insets{
+
+				Left:   30,
+				Right:  30,
+				Top:    5,
+				Bottom: 5,
+			}),
+
+			widget.ButtonOpts.WidgetOpts(
+
+				widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+
+					HorizontalPosition: widget.AnchorLayoutPositionCenter,
+					VerticalPosition:   widget.AnchorLayoutPositionStart,
+				}),
+			),
+		)
 	*/
 	btn_ToASCII := widget.NewButton(
 
@@ -271,8 +292,8 @@ func main() {
 
 			text := widget.NewText(
 
-				widget.TextOpts.Text("Loading.....", Face,rosePinePine),
-				widget.TextOpts.Position(widget.TextPositionStart,widget.TextPositionStart),
+				widget.TextOpts.Text("Loading.....", Face, rosePinePine),
+				widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionStart),
 			)
 
 			progressBar := widget.NewProgressBar(
@@ -335,37 +356,37 @@ func main() {
 	)
 
 	/*
-	btn_FromASCII := widget.NewButton(
+		btn_FromASCII := widget.NewButton(
 
-		widget.ButtonOpts.Image(ButtonImage),
+			widget.ButtonOpts.Image(ButtonImage),
 
-		widget.ButtonOpts.Image(ButtonImage),
+			widget.ButtonOpts.Image(ButtonImage),
 
-		widget.ButtonOpts.Text("FromASCII", Face, &widget.ButtonTextColor{
+			widget.ButtonOpts.Text("FromASCII", Face, &widget.ButtonTextColor{
 
-			Idle: color.NRGBA{0, 0, 0, 255},
-		}),
-
-		widget.ButtonOpts.TextProcessBBCode(false),
-
-		widget.ButtonOpts.TextPadding(widget.Insets{
-
-			Left:   30,
-			Right:  30,
-			Top:    5,
-			Bottom: 5,
-		}),
-
-		widget.ButtonOpts.WidgetOpts(
-
-			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-
-				HorizontalPosition: widget.AnchorLayoutPositionStart,
-				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+				Idle: color.NRGBA{0, 0, 0, 255},
 			}),
-		),
-	)
-	
+
+			widget.ButtonOpts.TextProcessBBCode(false),
+
+			widget.ButtonOpts.TextPadding(widget.Insets{
+
+				Left:   30,
+				Right:  30,
+				Top:    5,
+				Bottom: 5,
+			}),
+
+			widget.ButtonOpts.WidgetOpts(
+
+				widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
+
+					HorizontalPosition: widget.AnchorLayoutPositionStart,
+					VerticalPosition:   widget.AnchorLayoutPositionCenter,
+				}),
+			),
+		)
+
 	*/
 	buttonGroup1.AddChild(btn_Invisible_Two)
 	buttonGroup1.AddChild(btn_CHTOFD)
