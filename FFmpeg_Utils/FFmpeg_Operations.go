@@ -55,9 +55,20 @@ func StitchFramesToVideo(outputPATH string) {
 
 }
 
-func Extract_Thumbnail_And_Transform_To_Ebiten_Image(videoPath string) {
+func Extract_Thumbnail(videoPath string) (thumbnail_file_path string) {
 
-	cmd  := exec.Command("ffmpeg","-i",videoPath,"-ss","0", "-vframes", "1","thumbnail.png")
+	err := os.Mkdir("C:/Users/Krish Vij/Thumbnail", 0750)
+	if err != nil {
+
+		log.Fatalf("Error Occured while Creating the File: %v", err)
+
+	}
+
+	thumbnail_file_path = filepath.Join("C:/Users/Krish Vij/Thumbnail", "thumbnail.png")
+	
+	cmd  := exec.Command("ffmpeg","-i",videoPath,"-ss","0", "-vframes", "1",thumbnail_file_path)
 
 	cmd.Run()
+
+	return thumbnail_file_path
 }
