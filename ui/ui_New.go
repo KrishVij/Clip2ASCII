@@ -14,11 +14,13 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 
 	// "github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	FFmpegutils "github.com/KrishVij/clip2ASCII/FFmpeg_Utils"
 	"github.com/ebitenui/ebitenui"
 	"github.com/ebitenui/ebitenui/image"
 	"github.com/ebitenui/ebitenui/widget"
-	FFmpegutils "github.com/KrishVij/clip2ASCII/FFmpeg_Utils"
+
 	// "github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/ncruces/zenity"
 	"golang.org/x/image/font/gofont/goregular"
@@ -26,14 +28,17 @@ import (
 
 var my_color = color.NRGBA{R: 25, G: 23, B: 36, A: 255}
 var rosePinePine color.Color = my_color
+var new_ebiten_image *ebiten.Image
 
 const defaultPath = "C:/Users/Krish Vij/Downloads"
 
 // var newPage = image.NewImageColor(rosePinePurple)
 
 type Game struct {
-	ui  *ebitenui.UI
-	btn *widget.Button
+	ui         *ebitenui.UI
+	btn        *widget.Button
+	thumbnail  *ebiten.Image
+	btn_CHTOFD *widget.Button
 }
 
 func loadImageInvisible() (*widget.ButtonImage, error) {
@@ -81,6 +86,8 @@ func loadFont(size float64) (text.Face, error) {
 }
 
 func main() {
+
+	game := &Game{}
 
 	Min, Current, Max := 0, 0, 10
 
@@ -154,7 +161,7 @@ func main() {
 		),
 	)
 
-	btn_CHTOFD := widget.NewButton(
+	game.btn_CHTOFD = widget.NewButton(
 
 		widget.ButtonOpts.Image(ButtonImage),
 
@@ -187,54 +194,40 @@ func main() {
 			filepath, err := zenity.SelectFile(
 
 				zenity.Filename(defaultPath),
-				zenity.FileFilters{{   
-						
-					    Name: "Video files",
-						Patterns: []string{"*.mp4"},
-						CaseFold: true,
+				zenity.FileFilters{{
+
+					Name:     "Video files",
+					Patterns: []string{"*.mp4"},
+					CaseFold: true,
 				}},
 			)
 
 			if err != nil {
 
-				log.Fatalf("Error Ocuured while Opening file dialogs : %v",err)
+				log.Fatalf("Error Ocuured while Opening file dialogs : %v", err)
 			}
 
-			FFmpegutils.Extract_Thumbnail_And_Transform_To_Ebiten_Image(filepath)
+			thumbnail_file_path := FFmpegutils.Extract_Thumbnail(filepath)
 
+			fmt.Println(thumbnail_file_path)
+			game.thumbnail, _, err = ebitenutil.NewImageFromFile(thumbnail_file_path)
+
+			if err != nil {
+
+				log.Fatalf("Couldnt create an ebiten.image : %v", err)
+			}
+
+			// new_screen := ebiten.NewImage(200, 100)
+
+			// op := &ebiten.DrawImageOptions{}
+
+			// op.GeoM.Translate(100, 100)
+
+			rootContainer.RemoveChild(game.btn_CHTOFD)
+			// new_screen.DrawImage(new_ebiten_image, op)
 		},
-	))
+		))
 
-	/*
-		btn_Invisible := widget.NewButton(
-
-			widget.ButtonOpts.Image(ButtonImageInvisible),
-
-			widget.ButtonOpts.Text("ToASCII", Face, &widget.ButtonTextColor{
-
-				Idle: color.NRGBA{144, 122, 169, 255},
-			}),
-
-			widget.ButtonOpts.TextProcessBBCode(false),
-
-			widget.ButtonOpts.TextPadding(widget.Insets{
-
-				Left:   30,
-				Right:  30,
-				Top:    5,
-				Bottom: 5,
-			}),
-
-			widget.ButtonOpts.WidgetOpts(
-
-				widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-
-					HorizontalPosition: widget.AnchorLayoutPositionCenter,
-					VerticalPosition:   widget.AnchorLayoutPositionStart,
-				}),
-			),
-		)
-	*/
 	btn_ToASCII := widget.NewButton(
 
 		widget.ButtonOpts.Image(ButtonImage),
@@ -355,41 +348,8 @@ func main() {
 		),
 	)
 
-	/*
-		btn_FromASCII := widget.NewButton(
-
-			widget.ButtonOpts.Image(ButtonImage),
-
-			widget.ButtonOpts.Image(ButtonImage),
-
-			widget.ButtonOpts.Text("FromASCII", Face, &widget.ButtonTextColor{
-
-				Idle: color.NRGBA{0, 0, 0, 255},
-			}),
-
-			widget.ButtonOpts.TextProcessBBCode(false),
-
-			widget.ButtonOpts.TextPadding(widget.Insets{
-
-				Left:   30,
-				Right:  30,
-				Top:    5,
-				Bottom: 5,
-			}),
-
-			widget.ButtonOpts.WidgetOpts(
-
-				widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
-
-					HorizontalPosition: widget.AnchorLayoutPositionStart,
-					VerticalPosition:   widget.AnchorLayoutPositionCenter,
-				}),
-			),
-		)
-
-	*/
 	buttonGroup1.AddChild(btn_Invisible_Two)
-	buttonGroup1.AddChild(btn_CHTOFD)
+	buttonGroup1.AddChild(game.btn_CHTOFD)
 	rootContainer.AddChild(buttonGroup1)
 	buttonGroup2.AddChild(btn_ToASCII)
 	// buttonGroup2.AddChild(btn_Invisible)
@@ -405,14 +365,16 @@ func main() {
 	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("Clip2ASCII")
 
-	game := Game{
-		ui:  &ui,
-		btn: btn_ToASCII,
-	}
-
+	// game := Game{
+	// 	ui:  &ui,
+	// 	btn: btn_ToASCII,
+	// }
+	game.ui = &ui
+	game.btn = btn_ToASCII
+	game.btn_CHTOFD = game.btn_CHTOFD
 	// game.ButtonTraversal(ButtonImageInvisible)
 
-	err := ebiten.RunGame(&game)
+	err := ebiten.RunGame(game)
 	if err != nil {
 		log.Println(err)
 	}
@@ -427,7 +389,13 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 
+	// screen.DrawImage(new_ebiten_image, nil)
 	g.ui.Draw(screen)
+	if g.thumbnail != nil {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(100, 100)
+		screen.DrawImage(g.thumbnail, op)
+	}
 }
 
 func (g *Game) Layout(w, h int) (int, int) {
