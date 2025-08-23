@@ -3,14 +3,15 @@ package main
 import (
 	"bytes"
 	"fmt"
-
+	"os"
 	// "os/exec"
 	"time"
 
-	// stdImage "image"
+	stdImage "image"
 	"image/color"
 	"log"
 
+	"github.com/KononK/resize"
 	"github.com/hajimehoshi/ebiten/v2"
 
 	// "github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -20,7 +21,7 @@ import (
 	"github.com/ebitenui/ebitenui/widget"
 
 	// "github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	// "github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/ncruces/zenity"
 	"golang.org/x/image/font/gofont/goregular"
@@ -28,17 +29,20 @@ import (
 
 var my_color = color.NRGBA{R: 25, G: 23, B: 36, A: 255}
 var rosePinePine color.Color = my_color
-var new_ebiten_image *ebiten.Image
 
 const defaultPath = "C:/Users/Krish Vij/Downloads"
 
 // var newPage = image.NewImageColor(rosePinePurple)
 
 type Game struct {
-	ui         *ebitenui.UI
-	btn        *widget.Button
-	thumbnail  *ebiten.Image
-	btn_CHTOFD *widget.Button
+	ui                                    *ebitenui.UI
+	btn                                   *widget.Button
+	thumbnail                             *ebiten.Image
+	thumbnail_image_image_format          stdImage.Image
+	resized_thumbnail_image_image_format  stdImage.Image
+	resized_thumbnail_ebiten_image_format *ebiten.Image
+	btn_CHTOFD                            *widget.Button
+	screen_height, screen_width           int
 }
 
 func loadImageInvisible() (*widget.ButtonImage, error) {
@@ -127,7 +131,7 @@ func main() {
 		widget.ContainerOpts.WidgetOpts(
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 				HorizontalPosition: widget.AnchorLayoutPositionCenter,
-				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
 			}),
 		),
 	)
@@ -209,24 +213,46 @@ func main() {
 
 			thumbnail_file_path := FFmpegutils.Extract_Thumbnail(filepath)
 
-			fmt.Println(thumbnail_file_path)
-			game.thumbnail, _, err = ebitenutil.NewImageFromFile(thumbnail_file_path)
-
+			f, err := os.Open(thumbnail_file_path)
 			if err != nil {
 
-				log.Fatalf("Couldnt create an ebiten.image : %v", err)
+				log.Fatalf("Error Occured While Opening the image : %v",err)
+			}
+			defer f.Close()
+
+			img, _, err := stdImage.Decode(f)
+			if err != nil {
+
+				log.Fatalf("Error While Decoding image  Dceode Image: %v")
 			}
 
-			// new_screen := ebiten.NewImage(200, 100)
+			game.thumbnail_image_image_format = img
 
-			// op := &ebiten.DrawImageOptions{}
+			original_width, original_height := img.Bounds().Dx(), img.Bounds().Dy()
+			if original_width == 0 || original_height == 0 {
 
-			// op.GeoM.Translate(100, 100)
+				log.Println("Invalid thumbnail dimensions")
+				return
+			}
 
-			rootContainer.RemoveChild(game.btn_CHTOFD)
-			// new_screen.DrawImage(new_ebiten_image, op)
+			const max_size = 400
+			ratio := float64(original_width) / float64(original_height)
+			var new_width, new_height int
+			if float64(game.screen_width)/float64(game.screen_height) < ratio {
+				new_width = max_size
+				new_height =  int(float64(max_size) / ratio)
+			} else {
+				new_height = max_size
+				new_width = int(float64(max_size) * ratio)
+			}
+
+			resizedImg := resize.Resize(uint(new_width), uint(new_height), game.thumbnail_image_image_format, resize.Lanczos3)
+			game.resized_thumbnail_ebiten_image_format = ebiten.NewImageFromImage(resizedImg)
+
+			buttonGroup1.RemoveChild(game.btn_CHTOFD)
+
 		},
-		))
+	))
 
 	btn_ToASCII := widget.NewButton(
 
@@ -342,8 +368,8 @@ func main() {
 
 			widget.WidgetOpts.LayoutData(widget.AnchorLayoutData{
 
-				HorizontalPosition: widget.AnchorLayoutPositionStart,
-				VerticalPosition:   widget.AnchorLayoutPositionCenter,
+				HorizontalPosition: widget.AnchorLayoutPositionCenter,
+				VerticalPosition:   widget.AnchorLayoutPositionEnd,
 			}),
 		),
 	)
@@ -391,13 +417,16 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// screen.DrawImage(new_ebiten_image, nil)
 	g.ui.Draw(screen)
-	if g.thumbnail != nil {
+	if g.resized_thumbnail_ebiten_image_format != nil {
 		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(100, 100)
-		screen.DrawImage(g.thumbnail, op)
+		img_width, img_height := g.resized_thumbnail_ebiten_image_format.Size()
+		op.GeoM.Translate(float64((g.screen_width - img_width)/2), float64((g.screen_height - img_height)/2))
+		screen.DrawImage(g.resized_thumbnail_ebiten_image_format, op)
 	}
 }
 
 func (g *Game) Layout(w, h int) (int, int) {
+	g.screen_width = w
+	g.screen_height = h
 	return w, h
 }
