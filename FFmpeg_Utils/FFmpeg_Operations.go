@@ -68,7 +68,13 @@ func Extract_Thumbnail(videoPath string) (thumbnail_file_path string) {
 	
 	cmd  := exec.Command("ffmpeg","-i",videoPath,"-ss","0", "-vframes", "1",thumbnail_file_path)
 
-	cmd.Run()
+	cmd.Stdout = os.Stdout  // Capture stdout.
+	cmd.Stderr = os.Stderr
+	
+	if err := cmd.Run(); err != nil {
+
+		log.Fatalf("FFmpeg Error : %v",err)
+	}
 
 	return thumbnail_file_path
 }
