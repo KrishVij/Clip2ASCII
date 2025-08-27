@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	// "os/exec"
 	"time"
 	"sync"
 	"path/filepath"
@@ -31,8 +30,6 @@ var my_color = color.NRGBA{R: 242, G: 233, B: 225, A: 255}
 var rosePinePine color.Color = my_color
 var selected_video_path string
 
-// var newPage = image.NewImageColor(rosePinePurple)
-
 type Game struct {
 	ui                                    *ebitenui.UI
 	btn                                   *widget.Button
@@ -43,6 +40,7 @@ type Game struct {
 	btn_CHTOFD                            *widget.Button
 	screen_height, screen_width           int
 	thumbnail_widget                      *widget.Graphic
+	done                                  bool
 }
 
 func loadImageInvisible() (*widget.ButtonImage, error) {
@@ -258,6 +256,8 @@ func main() {
 				textContainer_for_btn_CHTOFD.AddChild(text_for_video_too_long)
 				rootContainer.RemoveChildren()
 				rootContainer.AddChild(textContainer_for_btn_CHTOFD)
+
+				return
 				
 			}
 			
@@ -361,7 +361,7 @@ func main() {
 
 			text := widget.NewText(
 
-				widget.TextOpts.Text("Loading.....", Face, rosePinePine),
+				widget.TextOpts.Text("Loading...", Face, rosePinePine),
 				widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionStart),
 			)
 
@@ -398,10 +398,12 @@ func main() {
 			textContainer.AddChild(text)
 			rootContainer.AddChild(textContainer)
 			progressBarsContainer.AddChild(progressBar)
-			game.resized_thumbnail_ebiten_image_format.Deallocate()
+			if game.resized_thumbnail_ebiten_image_format != nil {
+
+				game.resized_thumbnail_ebiten_image_format.Deallocate()
+			}
 			rootContainer.AddChild(progressBarsContainer)
-			
-			
+
 			go func() {
 
 				for Current < Max {
@@ -423,39 +425,10 @@ func main() {
 				rootContainer.AddChild(textContainer)
 
 				videoPath := selected_video_path
-				// if FFmpegutils.Check_Duration(videoPath) == false {
-
-				// 	text_container_for_btn_TOASCII := widget.NewContainer(
-
-				// 		widget.WidgetOpts.ContainerOpts(widget.AnchorLayout{
-
-				// 			widget.ContainerOpts.AnchorLayoutData{
-
-				// 				HorizontalPosition:
-				// 			}
-				// 		})
-				// 	)
-				// 	text_to_notify_video_is_too_long := widget.NewText(
-
-				// 		widget.TextOpts.Text("Your Video Is Too Long!!", Face, rosePinePine),
-				// 		widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionStart),
-				// 	)
-				
-				// }
 				path_to_output_ascii_video_file := filepath.Join(user_home_directory, "output.mp4")
 				outputPATH := path_to_output_ascii_video_file
-				
-				// mpp := Frame_Processing.Calculate_Ink_Required_For_Drawing_ASCII_Chars()
-				// Frame_Processing.Generate_ASCII_Lookup_Table(mpp)
 
-				// path_to_ASCII_Frames := filepath.Join(user_home_directory, "ASCII_Frames")
-				// if err := os.MkdirAll(path_to_ASCII_Frames, 0750); err != nil {
-
-				// 	log.Println("Error Occured While Creating ASCII Frames Directory: %v", err)
-				// }
-
-				// Count := 1
-				
+				fmt.Println("Extracting frames from video...")
 				result := FFmpegutils.ExtractFramesFromVideo(videoPath)
 
 				directory, err := os.ReadDir(result)
@@ -503,24 +476,16 @@ func main() {
 
 				wg.Wait()
 
-				log.Println("ASCII frames folder generated successfully!")
-
+				fmt.Println("Creating final video...")
+				
 				FFmpegutils.StitchFramesToVideo(outputPATH)
 
 				fmt.Println("ASCII Video Generated successfully")
+
+				FFmpegutils.Delete_Generated_Fodlers()
+				
 			}()
-
 			
-			// text_to_notify_video_is_converted := widget.NewText(
-
-			// 	widget.TextOpts.Text("Your ASCII Video is ready check your File Explorer", Face, rosePinePine),
-			// 	widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionStart),
-			// )
-
-			// textContainer.AddChild(text_to_notify_video_is_converted)
-			// rootContainer.AddChild(textContainer)
-			
-
 			println("Buttons is Clicked")
 
 		}),
@@ -539,12 +504,8 @@ func main() {
 	buttonGroup1.AddChild(game.btn_CHTOFD)
 	rootContainer.AddChild(buttonGroup1)
 	buttonGroup2.AddChild(btn_ToASCII)
-	// buttonGroup2.AddChild(btn_Invisible)
-	// buttonGroup2.AddChild(btn_FromASCII)
-	// rootContainer.AddChild(buttonGroup1)
 	rootContainer.AddChild(buttonGroup2)
-	//	rootContainer.AddChild(thumbnail_container)
-
+	
 	ui := ebitenui.UI{
 
 		Container: rootContainer,
@@ -552,15 +513,10 @@ func main() {
 
 	ebiten.SetWindowSize(800, 600)
 	ebiten.SetWindowTitle("Clip2ASCII")
-
-	// game := Game{
-	// 	ui:  &ui,
-	// 	btn: btn_ToASCII,
-	// }
+	
 	game.ui = &ui
 	game.btn = btn_ToASCII
 	game.btn_CHTOFD = game.btn_CHTOFD
-	// game.ButtonTraversal(ButtonImageInvisible)
 
 	err = ebiten.RunGame(game)
 	if err != nil {
@@ -577,7 +533,6 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 
-	// screen.DrawImage(new_ebiten_image, nil)
 	g.ui.Draw(screen)
 	if g.resized_thumbnail_ebiten_image_format != nil {
 		op := &ebiten.DrawImageOptions{}

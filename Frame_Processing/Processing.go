@@ -305,7 +305,7 @@ func SaveImage(Img *image.RGBA,Count int) (error error) {
 	path_to_ASCII_Frames := filepath.Join(user_home_directory, "ASCII_Frames")
 	if err := os.MkdirAll(path_to_ASCII_Frames, 0750); err != nil {
 
-		log.Println("Error Occured While Creating ASCII Frames Directory: %v", err)
+		log.Printf("Error Occured While Creating ASCII Frames Directory: %v", err)
 	}
 	s := filepath.Join(path_to_ASCII_Frames, fmt.Sprintf("ASCII_Frames%03d.png", Count))
 	newImage,err := os.Create(s)
