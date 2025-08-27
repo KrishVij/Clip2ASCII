@@ -4,26 +4,34 @@ import (
 	
 	"fmt"
 	"log"
+	"bytes"
+	"strings"
+	"strconv"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
 
-func ExtarctFramesFromVideo(videoPath string) (framesPath string) {
+func ExtractFramesFromVideo(videoPath string) (framesPath string) {
 
-	err := os.Mkdir("C:/Users/Krish Vij/Frames", 0750)
-
-	framesPath = filepath.Join("C:/Users/Krish Vij", "Frames")
-
+	user_home_directory, err := os.UserHomeDir()
 	if err != nil {
 
-		log.Fatalf("Error Occured while Creating the File: %v", err)
+		log.Fatalf("Couldnt Find Your Home Directory: %v", err)
+	}
+	
+	path_to_Frames := filepath.Join(user_home_directory, "Frames")
+	err = os.Mkdir(path_to_Frames, 0750)
+	if err != nil {
+
+		log.Fatalf("Error Occured while Creating the Directory: %v", err)
 	}
 
-	outputPattern := filepath.Join("C:/Users/Krish Vij/Frames", "%03d.png")
+	framesPath = path_to_Frames
+	outputPattern := filepath.Join(path_to_Frames, "%03d.png")
 
 	cmd := exec.Command("ffmpeg", "-i", videoPath, outputPattern)
-	output, err := cmd.Output()
+	output, err := cmd.CombinedOutput()
 
 	if err != nil {
 
@@ -38,8 +46,14 @@ func ExtarctFramesFromVideo(videoPath string) (framesPath string) {
 
 func StitchFramesToVideo(outputPATH string) {
 
-	err := os.Chdir("C:/Users/Krish Vij/ASCII_Frames")
+	user_home_directory, err := os.UserHomeDir()
+	if err != nil {
+
+		log.Fatalf("Couldnt Find Your Home Directory: %v", err)
+	}
 	
+	path_to_ASCII_FRAMES := filepath.Join(user_home_directory, "ASCII_FRAMES")
+	err = os.Chdir(path_to_ASCII_FRAMES)
 	if err != nil {
 		
 		log.Fatalf("Error changing directory: %v", err)
@@ -57,16 +71,22 @@ func StitchFramesToVideo(outputPATH string) {
 
 func Extract_Thumbnail(videoPath string) (thumbnail_file_path string) {
 
-	err := os.Mkdir("C:/Users/Krish Vij/Thumbnail", 0750)
+	user_home_directory, err := os.UserHomeDir()
 	if err != nil {
 
-		log.Fatalf("Error Occured while Creating the File: %v", err)
+		log.Fatalf("Couldnt Find Your Home Directory: %v", err)
+	}
+	path_to_thumbnail_directory := filepath.Join(user_home_directory, "thumbnail")
+	err = os.Mkdir(path_to_thumbnail_directory, 0750)
+	if err != nil {
+
+		log.Fatalf("Error Occured while Creating the Directory: %v", err)
 
 	}
-
-	thumbnail_file_path = filepath.Join("C:/Users/Krish Vij/Thumbnail", "thumbnail.png")
 	
-	cmd  := exec.Command("ffmpeg","-i",videoPath,"-ss","0", "-vframes", "1",thumbnail_file_path)
+	thumbnail_file_path = filepath.Join(path_to_thumbnail_directory, "thumbnail.png")
+	
+	cmd  := exec.Command("ffmpeg","-i",videoPath,"-ss","0", "-vframes", "1", thumbnail_file_path)
 
 	cmd.Stdout = os.Stdout  // Capture stdout.
 	cmd.Stderr = os.Stderr
@@ -77,4 +97,26 @@ func Extract_Thumbnail(videoPath string) (thumbnail_file_path string) {
 	}
 
 	return thumbnail_file_path
+}
+
+func Check_Duration(videoPath string) bool {
+
+	cmd := exec.Command("ffprobe", "-v", "error", "-show_entries", "format=duration",
+		"-of", "default=noprint_wrappers=1:nokey=1", videoPath)
+	output, err := cmd.Output()
+	if err != nil {
+		log.Fatalf("Error occurred while checking video duration: %v", err)
+	}
+
+	durationStr := strings.TrimSpace(string(bytes.Trim(output, "\n")))
+	if durationStr == "" {
+		log.Fatalf("No duration found in ffprobe output")
+	}
+
+	val, err := strconv.ParseFloat(durationStr, 64)
+	if err != nil {
+		log.Fatalf("Couldn't convert duration to float64: %v", err)
+	}
+
+	return val <= 30
 }
