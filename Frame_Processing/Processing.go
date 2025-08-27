@@ -29,6 +29,7 @@ const ASCII = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,
 const newWidth = 300
 const charWidth = 8
 const charHeight = 12
+var Path_to_ASCII_FRAMES_delete string
 
 // This function loads a PNG image and resizes it to prepare for ASCII conversion,
 // The resize calculation is crucial because it prevents distorted ASCII art.
@@ -150,17 +151,6 @@ func Map_Brightness_To_Char(brightnessValue uint8) byte {
 	return asciiValue
 }
 
-
-// func Map_Brightness_To_Char_Using_Lookup_Table(brightness_value uint8, lookup_table [256]string) string {
-
-// 	ascii_index := int(float64((len(lookup_table) - 1)) * float64(brightness_value) / 255.0)
-
-// 	ascii_value := lookup_table[ascii_index]
-
-// 	return ascii_value
-
-// }
-
 func RenderAsciiImage(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA, error) {
 
 	asciiMatrix := make([][]byte, len(Pixels))
@@ -191,7 +181,8 @@ func RenderAsciiImage(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA,
 		log.Println("ERROR OCCURED WHILE OPENING FILE: ", err)
 		return nil, err
 	}
-
+	defer fontFile.Close()
+	
 	//Reads the entire font file into memory
 	fontBytes, err := io.ReadAll(fontFile)
 	if err != nil {
@@ -305,25 +296,6 @@ func RenderAsciiImage(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA,
 
 func SaveImage(Img *image.RGBA,Count int) (error error) {
 
-	// err := os.Mkdir("C:/Users/Krish Vij/ASCII_Frames", 0750) 
-	// if err != nil {
-
-	// 	log.Println("Error Occured while Creating The Directoy: ",err)
-	// }
-
-	// user_home_directory, err := os.UserHomeDir()
-	// if err != nil {
-
-	// 	log.Fatalf("Couldnt Find Your Home Directory: %v", err)
-	// }
-	
-	// path_to_ASCII_Frames := filepath.Join(user_home_directory, "ASCII_Frames")
-	// err = os.Mkdir(path_to_ASCII_Frames, 0750)
-	// if err != nil {
-
-	// 	log.Println("Error Occured While Creating ASCII Frames Directory: %v", err)
-	// }
-
 	user_home_directory, err := os.UserHomeDir()
 	if err != nil {
 
@@ -337,7 +309,6 @@ func SaveImage(Img *image.RGBA,Count int) (error error) {
 	}
 	s := filepath.Join(path_to_ASCII_Frames, fmt.Sprintf("ASCII_Frames%03d.png", Count))
 	newImage,err := os.Create(s)
-	// ascciiImagePath := filepath.Join("C:/Users/Krish Vij/ASCII_Frames",newImage)
 
 	if err != nil {
 
@@ -346,14 +317,25 @@ func SaveImage(Img *image.RGBA,Count int) (error error) {
 		
 	}
 
-	err = png.Encode(newImage, Img)
-
-	if err != nil {
+	defer func() {
+		if cerr := newImage.Close(); cerr != nil {
+			if err == nil {
+				err = fmt.Errorf("error closing file %s: %w", s, cerr)
+			} else {
+				log.Printf("warning: error closing file %s: %v", s, cerr)
+			}
+		}
+	}()
+	
+	if err = png.Encode(newImage, Img); err != nil {
 
 		log.Println("Couldnt convert to grayScale: ", err)
 		return err
+		
 	}
-
+	
+	Path_to_ASCII_FRAMES_delete = path_to_ASCII_Frames
+	
 	return nil
 
 }
