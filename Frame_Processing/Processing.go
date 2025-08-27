@@ -309,7 +309,7 @@ func SaveImage(Img *image.RGBA,Count int) (error error) {
 	}
 	s := filepath.Join(path_to_ASCII_Frames, fmt.Sprintf("ASCII_Frames%03d.png", Count))
 	newImage,err := os.Create(s)
-
+	
 	if err != nil {
 
 		log.Println("Couldnt create File the following error occured: ", err)
