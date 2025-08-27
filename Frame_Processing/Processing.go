@@ -7,7 +7,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	// "path/filepath"
+	"path/filepath"
 	"io"
 	"log"
 	"os"
@@ -179,7 +179,13 @@ func RenderAsciiImage(Pixels [][]uint8, rgbaValues [][]color.RGBA) (*image.RGBA,
 	}
 
 	//Opens a TTF font file from disk
-	fontFile, err := os.Open("Font.ttf")
+	user_home_directory, err := os.UserHomeDir()
+	if err != nil {
+
+		log.Fatalf("Couldnt Find Your Home Directory: %v", err)
+	}
+	path_to_font_file := filepath.Join(user_home_directory, "Font.ttf")
+	fontFile, err := os.Open(path_to_font_file)
 	if err != nil {
 
 		log.Println("ERROR OCCURED WHILE OPENING FILE: ", err)
@@ -305,7 +311,31 @@ func SaveImage(Img *image.RGBA,Count int) (error error) {
 	// 	log.Println("Error Occured while Creating The Directoy: ",err)
 	// }
 
-	s := fmt.Sprintf("C:/Users/Krish Vij/ASCII_Frames/ASCII_Frames%03d.png",Count)
+	// user_home_directory, err := os.UserHomeDir()
+	// if err != nil {
+
+	// 	log.Fatalf("Couldnt Find Your Home Directory: %v", err)
+	// }
+	
+	// path_to_ASCII_Frames := filepath.Join(user_home_directory, "ASCII_Frames")
+	// err = os.Mkdir(path_to_ASCII_Frames, 0750)
+	// if err != nil {
+
+	// 	log.Println("Error Occured While Creating ASCII Frames Directory: %v", err)
+	// }
+
+	user_home_directory, err := os.UserHomeDir()
+	if err != nil {
+
+		log.Fatalf("Couldnt Find Your Home Directory: %v", err)
+	}
+
+	path_to_ASCII_Frames := filepath.Join(user_home_directory, "ASCII_Frames")
+	if err := os.MkdirAll(path_to_ASCII_Frames, 0750); err != nil {
+
+		log.Println("Error Occured While Creating ASCII Frames Directory: %v", err)
+	}
+	s := filepath.Join(path_to_ASCII_Frames, fmt.Sprintf("ASCII_Frames%03d.png", Count))
 	newImage,err := os.Create(s)
 	// ascciiImagePath := filepath.Join("C:/Users/Krish Vij/ASCII_Frames",newImage)
 
