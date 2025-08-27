@@ -10,7 +10,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"github.com/KrishVij/clip2ASCII/Frame_Processing"
 )
+
+var path_to_Frames_delete string
+var path_to_thumbnail_delete string
 
 func ExtractFramesFromVideo(videoPath string) (framesPath string) {
 
@@ -28,6 +32,7 @@ func ExtractFramesFromVideo(videoPath string) (framesPath string) {
 	}
 
 	framesPath = path_to_Frames
+	path_to_Frames_delete = path_to_Frames
 	outputPattern := filepath.Join(path_to_Frames, "%03d.png")
 
 	cmd := exec.Command("ffmpeg", "-i", videoPath, outputPattern)
@@ -53,13 +58,9 @@ func StitchFramesToVideo(outputPATH string) {
 	}
 	
 	path_to_ASCII_FRAMES := filepath.Join(user_home_directory, "ASCII_FRAMES")
-	err = os.Chdir(path_to_ASCII_FRAMES)
-	if err != nil {
-		
-		log.Fatalf("Error changing directory: %v", err)
-	}
+	input_pattern := filepath.Join(path_to_ASCII_FRAMES, "ASCII_Frames%03d.png")
 
-	cmd := exec.Command("ffmpeg", "-framerate", "30", "-i", "ASCII_Frames%03d.png", outputPATH)
+	cmd := exec.Command("ffmpeg", "-framerate", "30", "-i", input_pattern, outputPATH)
 	output, err := cmd.CombinedOutput()
 
 	if err != nil {
@@ -67,6 +68,7 @@ func StitchFramesToVideo(outputPATH string) {
 		log.Fatalf("FFmpeg error: %v\nOutput: %s", err, string(output))
 	}
 
+	
 }
 
 func Extract_Thumbnail(videoPath string) (thumbnail_file_path string) {
@@ -83,12 +85,12 @@ func Extract_Thumbnail(videoPath string) (thumbnail_file_path string) {
 		log.Fatalf("Error Occured while Creating the Directory: %v", err)
 
 	}
-	
+	path_to_thumbnail_delete = path_to_thumbnail_directory
 	thumbnail_file_path = filepath.Join(path_to_thumbnail_directory, "thumbnail.png")
 	
 	cmd  := exec.Command("ffmpeg","-i",videoPath,"-ss","0", "-vframes", "1", thumbnail_file_path)
 
-	cmd.Stdout = os.Stdout  // Capture stdout.
+	cmd.Stdout = os.Stdout  
 	cmd.Stderr = os.Stderr
 	
 	if err := cmd.Run(); err != nil {
@@ -119,4 +121,22 @@ func Check_Duration(videoPath string) bool {
 	}
 
 	return val <= 30
+}
+
+func Delete_Generated_Fodlers() {
+
+	if err := os.RemoveAll(path_to_Frames_delete); err != nil {
+
+		log.Fatalf("Error Occured While Deleting Frames Folder: %v", err)
+	}
+
+	if err := os.RemoveAll(path_to_thumbnail_delete);err != nil {
+
+		log.Fatalf("Error Occured While Deleting Frames Folder: %v", err)
+	}
+
+	if err := os.RemoveAll(Frame_Processing.Path_to_ASCII_FRAMES_delete); err != nil {
+
+		log.Fatalf("Error Occured While Deleting ASCII Frames Folder: %v", err)
+	}
 }
