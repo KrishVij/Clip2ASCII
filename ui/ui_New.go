@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	stdImage "image"
+	"image/jpeg"
 	"image/color"
 	"log"
 
@@ -415,7 +416,7 @@ func main() {
 
 				text_to_notify_video_is_converted := widget.NewText(
 
-					widget.TextOpts.Text("Your ASCII Video Is Ready Check Your File Explorer!!", Face, rosePinePine),
+					widget.TextOpts.Text("Starting Conversion..Please Wait Patiently !!", Face, rosePinePine),
 					widget.TextOpts.Position(widget.TextPositionStart, widget.TextPositionStart),
 				)
 
@@ -468,24 +469,48 @@ func main() {
 
 							log.Fatalf("Error occured while saving the image: %v", err)
 						}
-						
-						fmt.Printf("Frame: %d processed successfully\n", count-1)
+						str := fmt.Sprintf("Frame: %d processed successfully\n", count-1)
+						text_Print_Progress := widget.NewText(
+							widget.TextOpts.Text(str, Face, rosePinePine),
+							widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter))
+
+						rootContainer.RemoveChildren()
+						textContainer.RemoveChildren()
+						textContainer.AddChild(text_Print_Progress)
+						rootContainer.AddChild(textContainer)
 					}(i + 1, item.Name())
 
 				}
 
 				wg.Wait()
 
-				fmt.Println("Creating final video...")
+				creating_final_video_string := "Creating final video..."
+				text_Print_final_video_string := widget.NewText(
+					widget.TextOpts.Text(creating_final_video_string, Face, rosePinePine),
+					widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter))
+
+				rootContainer.RemoveChildren()
+				textContainer.RemoveChildren()
+				textContainer.AddChild(text_Print_final_video_string)
+				rootContainer.AddChild(textContainer)
 				
 				FFmpegutils.StitchFramesToVideo(outputPATH)
 
-				fmt.Println("ASCII Video Generated successfully")
+				creating_generated_successfully_string := "ASCII Video Generated successfully!! Close The App !!"
 
-				FFmpegutils.Delete_Generated_Fodlers()
+				text_Print_generated_successfully_string := widget.NewText(
+					widget.TextOpts.Text(creating_generated_successfully_string, Face, rosePinePine),
+					widget.TextOpts.Position(widget.TextPositionCenter, widget.TextPositionCenter))
+
+				rootContainer.RemoveChildren()
+				textContainer.RemoveChildren()
+				textContainer.AddChild(text_Print_generated_successfully_string)
+				rootContainer.AddChild(textContainer)
+
+				defer FFmpegutils.Delete_Generated_Folders()
 				
 			}()
-			
+				
 			println("Buttons is Clicked")
 
 		}),
@@ -511,7 +536,22 @@ func main() {
 		Container: rootContainer,
 	}
 
+	path_to_image_icon := filepath.Join(defaultPath, "Clip2ASCII", "ui", "imageIcon.jpg")
+	fmt.Println(path_to_image_icon)
+	icon_image, err := os.Open(path_to_image_icon)
+	if err != nil {
+
+		log.Fatalf("Error Occured While Opening Icon Image: %v", err)
+	}
+
+	jpeg_decoded_icon_image, err := jpeg.Decode(icon_image)
+	if err != nil {
+
+		log.Fatalf("Error Occured While Decoding The Icon Image : %v", err)
+	}
+	defer icon_image.Close()
 	ebiten.SetWindowSize(800, 600)
+	ebiten.SetWindowIcon([]stdImage.Image{jpeg_decoded_icon_image})
 	ebiten.SetWindowTitle("Clip2ASCII")
 	
 	game.ui = &ui
