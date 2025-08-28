@@ -123,7 +123,7 @@ func Check_Duration(videoPath string) bool {
 	return val <= 30
 }
 
-func Delete_Generated_Fodlers() {
+func Delete_Generated_Folders() {
 
 	if err := os.RemoveAll(path_to_Frames_delete); err != nil {
 
