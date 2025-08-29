@@ -123,6 +123,14 @@ func Check_Duration(videoPath string) bool {
 	return val <= 30
 }
 
+func Delete_Thumbnail_Folder() {
+
+	if err := os.RemoveAll(path_to_thumbnail_delete);err != nil {
+
+		log.Fatalf("Error Occured While Deleting Frames Folder: %v", err)
+	}
+}
+
 func Delete_Generated_Folders() {
 
 	if err := os.RemoveAll(path_to_Frames_delete); err != nil {
@@ -130,10 +138,10 @@ func Delete_Generated_Folders() {
 		log.Fatalf("Error Occured While Deleting Frames Folder: %v", err)
 	}
 
-	if err := os.RemoveAll(path_to_thumbnail_delete);err != nil {
+	// if err := os.RemoveAll(path_to_thumbnail_delete);err != nil {
 
-		log.Fatalf("Error Occured While Deleting Frames Folder: %v", err)
-	}
+	// 	log.Fatalf("Error Occured While Deleting Frames Folder: %v", err)
+	// }
 
 	if err := os.RemoveAll(Frame_Processing.Path_to_ASCII_FRAMES_delete); err != nil {
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 	"sync"
+	"strings"
 	"path/filepath"
 
 	stdImage "image"
@@ -218,12 +219,12 @@ func main() {
 					CaseFold: true,
 				}},
 			)
-
+			
 			if err != nil {
 
 				log.Fatalf("Error Ocuured while Opening file dialogs : %v", err)
 			}
-			
+
 			if FFmpegutils.Check_Duration(selected_video_path) == true {
 
 				fmt.Print("That Your Video is correct Duration!!")
@@ -269,8 +270,9 @@ func main() {
 
 				log.Fatalf("Error Occured While Opening the image : %v",err)
 			}
+			
 			defer f.Close()
-
+			
 			img, _, err := stdImage.Decode(f)
 			if err != nil {
 
@@ -303,7 +305,10 @@ func main() {
 			buttonGroup1.RemoveChild(game.btn_CHTOFD)
 
 		},
-	))
+			
+		))
+
+	defer FFmpegutils.Delete_Thumbnail_Folder()
 
 	btn_ToASCII := widget.NewButton(
 
@@ -426,7 +431,9 @@ func main() {
 				rootContainer.AddChild(textContainer)
 
 				videoPath := selected_video_path
-				path_to_output_ascii_video_file := filepath.Join(user_home_directory, "output.mp4")
+				slice_of_splitted_video_path := []string{}
+				slice_of_splitted_video_path = strings.Split(selected_video_path, "\\")
+				path_to_output_ascii_video_file := filepath.Join(user_home_directory, slice_of_splitted_video_path[len(slice_of_splitted_video_path) - 1])
 				outputPATH := path_to_output_ascii_video_file
 
 				fmt.Println("Extracting frames from video...")
