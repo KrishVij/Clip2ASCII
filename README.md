@@ -160,6 +160,18 @@ Frame extraction, ffmpeg calls, and cleanup: FFmpeg_Operations.go.
 
 Image resizing, brightness → char mapping, and rendering: Processing.go.
 
+🧭 Roadmap — Clip2ASCII
+
+*  **A Feature to choose custom fonts for generation your ascii videos**
+*  **More Robust Error Handling and Make teh Code More Cleaner**
+*  **Better ASCII conversion using bettor methods like CLAHE algorithm**
+*  **Better UI with animations and Better User progress animations**
+*  **An Interface via which users can provide video links from the web and conversion is possible**
+*  **A cross-platform applicatioon with no external dependencies needed**
+
+Note : _This app is still in early alpha so the best way to use it have everything installed as it may crash if u dont have any of the required prerequisites_
+
+
 
 
 
