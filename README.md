@@ -162,6 +162,7 @@ Image resizing, brightness → char mapping, and rendering: Processing.go.
 
 🧭 Roadmap — Clip2ASCII
 
+* **Implementing a more efficient and faster algorithm to reduce waiting time for users** 
 *  **A Feature to choose custom fonts for generation your ascii videos**
 *  **More Robust Error Handling and Make teh Code More Cleaner**
 *  **Better ASCII conversion using bettor methods like CLAHE algorithm**
